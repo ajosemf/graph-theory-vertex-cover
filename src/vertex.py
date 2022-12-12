@@ -25,6 +25,7 @@ class VertexCover(object):
     def get_cover(self, k, method='brute_force'):
         assert method in ['brute_force', 'greedy'], 'Invalid method'
         strategy = self._brute_force_cover if method == 'brute_force' else self._greedy_cover
+        print(f'Running {method} strategy with k={k}...')
         try:
             response = func_timeout.func_timeout(
                 self._TIME_LIMIT, strategy, args=[k]
