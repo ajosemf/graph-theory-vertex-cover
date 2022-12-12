@@ -1,6 +1,7 @@
 from itertools import chain, combinations
 import networkx as nx
 import func_timeout
+import tracemalloc
 
 
 class VertexCover(object):
@@ -30,7 +31,7 @@ class VertexCover(object):
             )
             return response
         except func_timeout.FunctionTimedOut:
-            print('Exceeded time limit! Time Limit: {} seconds'.format(self._TIME_LIMIT))
+            print(f'Exceeded time limit! Time Limit: {self._TIME_LIMIT} seconds')
     
     
     def _build_adjacency_matrix(self):
@@ -76,9 +77,16 @@ class VertexCover(object):
 
 
     def _brute_force_cover(self, k):
+        tracemalloc.start()
         for subset in self._subsets(self.nodes, k):
+            if tracemalloc.get_traced_memory()[0] > self._MEMORY_LIMIT:
+                print(f'Memory limit of {self._MEMORY_LIMIT} bytes exceeded!')
+                tracemalloc.stop()
+                return []
             if self._is_cover_brute_force(subset):
+                tracemalloc.stop()
                 return list(subset)
+        tracemalloc.stop()
         return []
 
 
@@ -90,14 +98,21 @@ class VertexCover(object):
     
     
     def _greedy_cover(self, k):
+        tracemalloc.start()
         cover = []
         is_valid, vertex_penalties = self._valid_cover(cover)
         while not is_valid:
+            if tracemalloc.get_traced_memory()[0] > self._MEMORY_LIMIT:
+                print(f'Memory limit of {self._MEMORY_LIMIT} bytes exceeded!')
+                tracemalloc.stop()
+                return []
             if len(cover) == k:
+                tracemalloc.stop()
                 return []
             vertex = [v for v in range(0, len(vertex_penalties)) if vertex_penalties[v] == max(vertex_penalties)][0]
             cover.append(vertex)
             is_valid, vertex_penalties = self._valid_cover(cover)
+        tracemalloc.stop()
         return cover
 
 
