@@ -1,6 +1,7 @@
 name: vertex-cover
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - ipykernel 
   - jupyter
@@ -19,3 +20,4 @@ dependencies:
   - seaborn 
   - tqdm
   - networkx
+  - func_timeout

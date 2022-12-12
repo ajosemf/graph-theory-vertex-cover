@@ -1,11 +1,14 @@
 from itertools import chain, combinations
 import networkx as nx
+import func_timeout
 
 
 class VertexCover(object):
     
     
-    def __init__(self):
+    def __init__(self, MEMORY_LIMIT=1000000000, TIME_LIMIT=120):
+        self._MEMORY_LIMIT = MEMORY_LIMIT
+        self._TIME_LIMIT = TIME_LIMIT
         self.nodes = None
         self.edges = None
         self.adjacency_matrix = None
@@ -20,10 +23,14 @@ class VertexCover(object):
         
     def get_cover(self, k, method='brute_force'):
         assert method in ['brute_force', 'greedy'], 'Invalid method'
-        if method == 'brute_force':
-            return self._brute_force_cover(k)
-        else:
-            return self._greedy_cover()
+        strategy = self._brute_force_cover if method == 'brute_force' else self._greedy_cover
+        try:
+            response = func_timeout.func_timeout(
+                self._TIME_LIMIT, strategy, args=[k]
+            )
+            return response
+        except func_timeout.FunctionTimedOut:
+            print('Exceeded time limit! Time Limit: {} seconds'.format(self._TIME_LIMIT))
     
     
     def _build_adjacency_matrix(self):
@@ -82,10 +89,12 @@ class VertexCover(object):
         return True
     
     
-    def _greedy_cover(self):
+    def _greedy_cover(self, k):
         cover = []
         is_valid, vertex_penalties = self._valid_cover(cover)
         while not is_valid:
+            if len(cover) == k:
+                return []
             vertex = [v for v in range(0, len(vertex_penalties)) if vertex_penalties[v] == max(vertex_penalties)][0]
             cover.append(vertex)
             is_valid, vertex_penalties = self._valid_cover(cover)
